@@ -2,7 +2,9 @@
 
 <br/><br/>
 
-![PHP Script Screenshot: WP WordPress Hooks Lister](https://wprock.fr/wp-content/uploads/2019/10/wordpress-hooks-lister.gif "PHP Script Screenshot: WP WordPress Hooks Lister")
+<p align="center">
+  <img width="500" src="https://wprock.fr/wp-content/uploads/2019/10/wordpress-hooks-lister.gif" alt="PHP Script Screenshot: WP WordPress Hooks Lister">
+</p>
 
 <br/><br/>
 
