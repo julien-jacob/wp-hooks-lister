@@ -2,7 +2,7 @@
 
 ## 🐳 Description:
 
-Create automatic WordPress hooks documentation for plugins and themes printed in HTML and MarkDown format.
+Create **automatic WordPress hooks documentation** for **plugins** and **themes** printed in **HTML** and **MarkDown** format.
 
 ## 🐠 How to use ?
 
