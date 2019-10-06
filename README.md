@@ -1,14 +1,16 @@
 # 🐡 WordPress Hooks Lister
 
----
+<br/><br/>
 
 ![PHP Script Screenshot: WP WordPress Hooks Lister](https://wprock.fr/wp-content/uploads/2019/10/wordpress-hooks-lister.gif "PHP Script Screenshot: WP WordPress Hooks Lister")
 
----
+<br/><br/>
 
 ## 🐳 Description:
 
 Create **automatic WordPress hooks documentation** for **plugins** and **themes** printed in **HTML** and **MarkDown** format.
+
+<br/>
 
 ## 🐠 How to use ?
 
