@@ -1,4 +1,4 @@
-# 🐡 WordPress Hooks Lister / Automatic documentation for plugins and themes
+# 🐡 WordPress Hooks Lister / Automatic plugins and themes documentation
 
 <br/><br/>
 
