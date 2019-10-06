@@ -38,8 +38,8 @@
  */
 $exclude_files = array(
 	'wp-hooks-lister.php',
-	'./vendor/*',
-	'./node_modules/*',
+	'.*/vendor/.*',
+	'.*/node_modules/.*',
 );
 
 /**
@@ -474,9 +474,7 @@ foreach ( $hooks as $key => $hook ) {
 				<header class="col-10 offset-1 text-center">
 					<h1>🐡 WordPress Hooks Lister</h1>
 					<br />
-					<small>Tool create by
-						<a href="https://wprock.fr" target="_blank">wpRock</a> at
-						Paris</small>
+					<small>Tool create by <a href="https://weglot.com" target="_blank">Weglot</a> and <a href="https://wprock.fr" target="_blank">wpRock</a> at Paris</small>
 				</header>
 
 				<div class="col-10 offset-1">
