@@ -252,7 +252,7 @@ foreach ( $hooks as $key => $hook ) {
 		if ( 'filter' === $hook['type'] ) {
 			$markdown .= "**Type:** Filter \n\n";
 			$html     .= "<p><strong>Type:</strong> Filter</p>\n";
-		} elseif ( 'acion' === $hook['type'] ) {
+		} elseif ( 'action' === $hook['type'] ) {
 			$markdown .= "**Type:** Action \n\n";
 			$html     .= "<p><strong>Type:</strong> Action</p>\n";
 		}
