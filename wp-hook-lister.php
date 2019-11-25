@@ -53,6 +53,7 @@ $wp_hook_lister_settings = array(
 		'.*/node_modules/.*',
 		'.*/deprecated/.*',
 	),
+	'path_to_parse' => '*.php',
 );
 
 /**
@@ -86,7 +87,7 @@ if ( ! function_exists( 'glob_recursive' ) ) {
 	}
 }
 
-$all_php_files = glob_recursive( '*.php' );
+$all_php_files = glob_recursive( $wp_hook_lister_settings['path_to_parse'] );
 
 foreach ( $all_php_files as $key => $php_file ) {
 	$is_eligible_file = true;

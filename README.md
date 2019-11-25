@@ -27,3 +27,4 @@ Put the PHP file into the root folder of the plugin or theme to analyze and open
 - Add conditional display setting
 - Treat do_action_ref_array()
 - Filter : All, Actions or Filters
+- Add path to parse in settings
