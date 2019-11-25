@@ -146,7 +146,15 @@ foreach ( $php_files as $key => $php_file ) {
 				} elseif ( 'do_action' === $matche[1] || 'do_action_ref_array' === $matche[1] ) {
 					$counters['actions'] += 1;
 					$hook['type']         = 'action';
-				} 
+				}
+
+				if ( ! empty( $_GET['t'] ) ) {
+					if ( 'action' === $_GET['t']  && 'action' !== $hook['type'] ) {
+						continue;
+					} elseif ( 'filter' === $_GET['t']  && 'filter' !== $hook['type'] ) {
+						continue;
+					}
+				}
 			}
 
 			/**
@@ -332,8 +340,6 @@ foreach ( $hooks as $key => $hook ) {
 		$markdown .= "}\n```\n\n";
 		$html     .= "}\n</code></pre>\n";
 	} // End ['display']['example']
-
-
 }
 
 ?>
@@ -490,16 +496,22 @@ foreach ( $hooks as $key => $hook ) {
 					<div class="alert alert-secondary text-center" role="alert">
 						<ul class="list-inline">
 							<li class="list-inline-item">
-								<strong>All:</strong>
-								<?php echo (int) ( $counters['actions'] + $counters['filters'] ); ?>
+								<a href="?t=all" class="text-dark">
+									<strong>All:</strong>
+									<?php echo (int) ( $counters['actions'] + $counters['filters'] ); ?>
+								</a>
 							</li>
 							<li class="list-inline-item">
-								<strong>Actions:</strong>
-								<?php echo $counters['actions']; ?>
+								<a href="?t=action" class="text-dark">
+									<strong>Actions:</strong>
+									<?php echo $counters['actions']; ?>
+								</a>
 							</li>
 							<li class="list-inline-item">
-								<strong>Filters:</strong>
-								<?php echo $counters['filters']; ?>
+								<a href="?t=filter" class="text-dark">
+									<strong>Filters:</strong>
+									<?php echo $counters['filters']; ?>
+								</a>
 							</li>
 						</ul>
 					</div>
