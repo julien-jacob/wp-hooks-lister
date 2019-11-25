@@ -36,16 +36,31 @@
 /**
  * Settings
  */
-$exclude_files = array(
-	'wp-hooks-lister.php',
-	'.*/vendor/.*',
-	'.*/node_modules/.*',
+$wp_hook_lister_settings = array(
+	'display'       => array(
+		'title'       => true,
+		'description' => array(
+			'file'       => true,
+			'type'       => true,
+			'parameters' => true,
+		),
+		'declaration' => true,
+		'example'     => true,
+	),
+	'exclude_files' => array(
+		'wp-hooks-lister.php',
+		'.*/vendor/.*',
+		'.*/node_modules/.*',
+		'.*/deprecated/.*',
+	),
+	'path_to_parse' => '*.php',
 );
+
 
 /**
  * Hooks lister variables
  */
-$regex         = '/.*?(apply_filters|do_action)\(\s*?\'(.*?)\'\s*?,\s*(.*)\);/xmX';
+$regex         = '/.*?(do_action_ref_array|apply_filters|do_action)\(\s*?\'(.*?)\'\s*?,\s*(.*)\);/xmX';
 $all_php_files = array();
 $php_files     = array();
 $matches       = array();
@@ -73,11 +88,11 @@ if ( ! function_exists( 'glob_recursive' ) ) {
 	}
 }
 
-$all_php_files = glob_recursive( '*.php' );
+$all_php_files = glob_recursive( $wp_hook_lister_settings['path_to_parse'] );
 
 foreach ( $all_php_files as $key => $php_file ) {
 	$is_eligible_file = true;
-	foreach ( $exclude_files as $key => $exclude_file ) {
+	foreach ( $wp_hook_lister_settings['exclude_files'] as $key => $exclude_file ) {
 		preg_match( "#$exclude_file#", $php_file, $exclude_regex_result );
 		if ( ! empty( $exclude_regex_result ) ) {
 			$is_eligible_file = false;
@@ -130,9 +145,17 @@ foreach ( $php_files as $key => $php_file ) {
 				if ( 'apply_filters' === $matche[1] ) {
 					$counters['filters'] += 1;
 					$hook['type']         = 'filter';
-				} elseif ( 'do_action' === $matche[1] ) {
+				} else { // ( 'do_action' === $matche[1] || 'do_action_ref_array' === $matche[1] )
 					$counters['actions'] += 1;
 					$hook['type']         = 'action';
+				}
+
+				if ( ! empty( $_GET['t'] ) ) {
+					if ( 'action' === $_GET['t']  && 'action' !== $hook['type'] ) {
+						continue;
+					} elseif ( 'filter' === $_GET['t']  && 'filter' !== $hook['type'] ) {
+						continue;
+					}
 				}
 			}
 
@@ -199,18 +222,32 @@ foreach ( $php_files as $key => $php_file ) {
  */
 foreach ( $hooks as $key => $hook ) {
 
-	if ( ! empty( $matche[2] ) ) {
+	if ( 
+		! empty( $hook['name'] )
+		&& ! empty( $wp_hook_lister_settings['display']['title'] )
+	) {
 		$markdown .= '## Hook: ' . $hook['name'] . "\n\n";
 		$html     .= '<h2>Hook: ' . $hook['name'] . "</h2>\n";
+	} // End ['display']['title']
+
+	if (
+		! empty( $wp_hook_lister_settings['display']['description']['file'] )
+		|| ! empty( $wp_hook_lister_settings['display']['description']['type'] )
+		|| ! empty( $wp_hook_lister_settings['display']['description']['parameters'] )
+	) {
+		$markdown .= "### Description \n\n";
+		$html     .= "<h3>Description</h3>\n";
 	}
 
-	$markdown .= "### Description \n\n";
-	$html     .= "<h3>Description</h3>\n";
+	if ( ! empty( $wp_hook_lister_settings['display']['description']['file'] ) ) {
+		$markdown .= '**File:** ' . $hook['file'] . "\n\n";
+		$html     .= '<p><strong>File:</strong> ' . $hook['file'] . "</p>\n";
+	} // End ['display']['description']['file']
 
-	$markdown .= '**File:** ' . $hook['file'] . "\n\n";
-	$html     .= '<p><strong>File:</strong> ' . $hook['file'] . "</p>\n";
-
-	if ( ! empty( $hook['type'] ) ) {
+	if (
+		! empty( $hook['type'] )
+		&& ! empty( $wp_hook_lister_settings['display']['description']['type'] )
+	) {
 
 		if ( 'filter' === $hook['type'] ) {
 			$markdown .= "**Type:** Filter \n\n";
@@ -219,9 +256,12 @@ foreach ( $hooks as $key => $hook ) {
 			$markdown .= "**Type:** Action \n\n";
 			$html     .= "<p><strong>Type:</strong> Action</p>\n";
 		}
-	}
+	} // End ['display']['description']['type']
 
-	if ( ! empty( $hook['parameters'] ) ) {
+	if (
+		! empty( $hook['parameters'] )
+		&& ! empty( $wp_hook_lister_settings['display']['description']['parameters'] )
+	) {
 
 		if ( 1 === count( $hook['parameters'] ) ) {
 			$markdown .= '**Parameter:** $' . $hook['parameters'][0] . "\n\n";
@@ -240,66 +280,69 @@ foreach ( $hooks as $key => $hook ) {
 			$markdown .= "\n\n";
 			$html     .= "</p>\n";
 		}
-	}
+	} // end ['display']['description']['parameters']
 
-	$markdown .= "### Declaration: \n\n```php\n" . $hook['declaration'] . "\n```\n\n";
-	$html     .= "<h3>Declaration:</h3></strong></p>\n<pre><code>" . $hook['declaration'] . "\n</code></pre>\n";
+	if ( ! empty( $wp_hook_lister_settings['display']['declaration'] ) ) {
+		$markdown .= "### Declaration: \n\n```php\n" . $hook['declaration'] . "\n```\n\n";
+		$html     .= "<h3>Declaration:</h3></strong></p>\n<pre><code>" . $hook['declaration'] . "\n</code></pre>\n";
+	} // ['display']['declaration']
 
+	if ( ! empty( $wp_hook_lister_settings['display']['example'] ) ) {
+		$markdown .= "### Code exemple: \n\n```php\n";
+		$html     .= "<h3>Code exemple:</h3>\n<pre><code>";
 
-	$markdown .= "### Code exemple: \n\n```php\n";
-	$html     .= "<h3>Code exemple:</h3>\n<pre><code>";
-
-	if ( 'action' === $hook['type'] ) {
-		$markdown .= "add_action( '";
-		$html     .= "add_action( '";
-	} elseif ( 'filter' === $hook['type'] ) {
-		$markdown .= "add_filter( '";
-		$html     .= "add_filter( '";
-	}
-
-	$markdown .= $hook['name'] . "', 'prefix_" . $hook['name'] . "'";
-	$html     .= $hook['name'] . "', 'prefix_" . $hook['name'] . "'";
-
-	if ( ! empty( $hook['parameters'] ) && 1 < count( $hook['parameters'] ) ) {
-		$markdown .= ', 10, ' . count( $hook['parameters'] );
-		$html     .= ', 10, ' . count( $hook['parameters'] );
-	}
-
-	$markdown .= " );\n";
-	$html     .= " );\n";
-
-	$markdown .= 'function prefix_' . $hook['name'] . '(';
-	$html     .= 'function prefix_' . $hook['name'] . '(';
-
-	if ( ! empty( $hook['parameters'] ) ) {
-		$markdown .= ' ';
-		$html     .= ' ';
-	}
-
-	foreach ( $hook['parameters'] as $key => $parameter ) {
-		if ( $key !== 0 ) {
-			$markdown .= ', ';
-			$html     .= ', ';
+		if ( 'action' === $hook['type'] ) {
+			$markdown .= "add_action( '";
+			$html     .= "add_action( '";
+		} elseif ( 'filter' === $hook['type'] ) {
+			$markdown .= "add_filter( '";
+			$html     .= "add_filter( '";
 		}
-		$markdown .= '$' . $parameter;
-		$html     .= '$' . $parameter;
-	}
 
-	if ( ! empty( $hook['parameters'] ) ) {
-		$markdown .= ' ';
-		$html     .= ' ';
-	}
+		$markdown .= $hook['name'] . "', 'prefix_" . $hook['name'] . "'";
+		$html     .= $hook['name'] . "', 'prefix_" . $hook['name'] . "'";
 
-	$markdown .= ") { \n\t// Code\n";
-	$html     .= ") { \n\t// Code\n";
+		if ( ! empty( $hook['parameters'] ) && 1 < count( $hook['parameters'] ) ) {
+			$markdown .= ', 10, ' . count( $hook['parameters'] );
+			$html     .= ', 10, ' . count( $hook['parameters'] );
+		}
 
-	if ( 'filter' === $hook['type'] ) {
-		$markdown .= "\treturn $" . $hook['parameters'][0] . ";\n";
-		$html     .= "\treturn $" . $hook['parameters'][0] . ";\n";
-	}
+		$markdown .= " );\n";
+		$html     .= " );\n";
 
-	$markdown .= "}\n```\n\n";
-	$html     .= "}\n</code></pre>\n";
+		$markdown .= 'function prefix_' . $hook['name'] . '(';
+		$html     .= 'function prefix_' . $hook['name'] . '(';
+
+		if ( ! empty( $hook['parameters'] ) ) {
+			$markdown .= ' ';
+			$html     .= ' ';
+		}
+
+		foreach ( $hook['parameters'] as $key => $parameter ) {
+			if ( $key !== 0 ) {
+				$markdown .= ', ';
+				$html     .= ', ';
+			}
+			$markdown .= '$' . $parameter;
+			$html     .= '$' . $parameter;
+		}
+
+		if ( ! empty( $hook['parameters'] ) ) {
+			$markdown .= ' ';
+			$html     .= ' ';
+		}
+
+		$markdown .= ") { \n\t// Code\n";
+		$html     .= ") { \n\t// Code\n";
+
+		if ( 'filter' === $hook['type'] ) {
+			$markdown .= "\treturn $" . $hook['parameters'][0] . ";\n";
+			$html     .= "\treturn $" . $hook['parameters'][0] . ";\n";
+		}
+
+		$markdown .= "}\n```\n\n";
+		$html     .= "}\n</code></pre>\n";
+	} // End ['display']['example']
 }
 
 ?>
@@ -456,16 +499,22 @@ foreach ( $hooks as $key => $hook ) {
 					<div class="alert alert-secondary text-center" role="alert">
 						<ul class="list-inline">
 							<li class="list-inline-item">
-								<strong>All:</strong>
-								<?php echo (int) ( $counters['actions'] + $counters['filters'] ); ?>
+								<a href="?t=all" class="text-dark">
+									<strong>All:</strong>
+									<?php echo (int) ( $counters['actions'] + $counters['filters'] ); ?>
+								</a>
 							</li>
 							<li class="list-inline-item">
-								<strong>Actions:</strong>
-								<?php echo $counters['actions']; ?>
+								<a href="?t=action" class="text-dark">
+									<strong>Actions:</strong>
+									<?php echo $counters['actions']; ?>
+								</a>
 							</li>
 							<li class="list-inline-item">
-								<strong>Filters:</strong>
-								<?php echo $counters['filters']; ?>
+								<a href="?t=filter" class="text-dark">
+									<strong>Filters:</strong>
+									<?php echo $counters['filters']; ?>
+								</a>
 							</li>
 						</ul>
 					</div>
