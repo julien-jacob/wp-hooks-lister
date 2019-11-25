@@ -20,7 +20,7 @@ Put the PHP file into the root folder of the plugin or theme to analyze and open
 
 <br/><br/>
 
-## Changelog
+## 🐙 Changelog
 
 ### V1.1
 - Change settings structure
