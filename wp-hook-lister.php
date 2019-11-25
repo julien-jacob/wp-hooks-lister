@@ -56,6 +56,7 @@ $wp_hook_lister_settings = array(
 	'path_to_parse' => '*.php',
 );
 
+
 /**
  * Hooks lister variables
  */
@@ -144,7 +145,7 @@ foreach ( $php_files as $key => $php_file ) {
 				if ( 'apply_filters' === $matche[1] ) {
 					$counters['filters'] += 1;
 					$hook['type']         = 'filter';
-				} elseif ( 'do_action' === $matche[1] || 'do_action_ref_array' === $matche[1] ) {
+				} else { // ( 'do_action' === $matche[1] || 'do_action_ref_array' === $matche[1] )
 					$counters['actions'] += 1;
 					$hook['type']         = 'action';
 				}
@@ -221,7 +222,8 @@ foreach ( $php_files as $key => $php_file ) {
  */
 foreach ( $hooks as $key => $hook ) {
 
-	if ( ! empty( $matche[2] )
+	if ( 
+		! empty( $hook['name'] )
 		&& ! empty( $wp_hook_lister_settings['display']['title'] )
 	) {
 		$markdown .= '## Hook: ' . $hook['name'] . "\n\n";
