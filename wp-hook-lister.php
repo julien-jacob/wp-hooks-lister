@@ -37,6 +37,16 @@
  * Settings
  */
 $wp_hook_lister_settings = array(
+	'display'       => array(
+		'title'       => true,
+		'description' => array(
+			'file'       => true,
+			'type'       => true,
+			'parameters' => true,
+		),
+		'declaration' => true,
+		'example'     => true,
+	),
 	'exclude_files' => array(
 		'wp-hooks-lister.php',
 		'.*/vendor/.*',
@@ -196,24 +206,57 @@ foreach ( $php_files as $key => $php_file ) {
 	}
 }
 
+function slugifier($txt){
+
+	/* Get rid of accented characters */
+	$search = explode(",","ç,æ,œ,á,é,í,ó,ú,à,è,ì,ò,ù,ä,ë,ï,ö,ü,ÿ,â,ê,î,ô,û,å,e,i,ø,u");
+	$replace = explode(",","c,ae,oe,a,e,i,o,u,a,e,i,o,u,a,e,i,o,u,y,a,e,i,o,u,a,e,i,o,u");
+	$txt = str_replace($search, $replace, $txt);
+ 
+	/* Lowercase all the characters */
+	$txt = strtolower($txt);
+ 
+	/* Avoid whitespace at the beginning and the ending */
+	$txt = trim($txt);
+ 
+	/* Replace all the characters that are not in a-z or 0-9 by a hyphen */
+	$txt = preg_replace("/[^a-z0-9]/", "-", $txt);
+	/* Remove hyphen anywhere it's more than one */
+	$txt = preg_replace("/[\-]+/", '-', $txt);
+	return $txt;   
+ }
+
 
 /**
  * Generate HTML and MarkDown content
  */
 foreach ( $hooks as $key => $hook ) {
 
-	if ( ! empty( $matche[2] ) ) {
+	if ( ! empty( $matche[2] )
+		&& ! empty( $wp_hook_lister_settings['display']['title'] )
+	) {
 		$markdown .= '## Hook: ' . $hook['name'] . "\n\n";
 		$html     .= '<h2>Hook: ' . $hook['name'] . "</h2>\n";
+	} // End ['display']['title']
+
+	if (
+		! empty( $wp_hook_lister_settings['display']['description']['file'] )
+		|| ! empty( $wp_hook_lister_settings['display']['description']['type'] )
+		|| ! empty( $wp_hook_lister_settings['display']['description']['parameters'] )
+	) {
+		$markdown .= "### Description \n\n";
+		$html     .= "<h3>Description</h3>\n";
 	}
 
-	$markdown .= "### Description \n\n";
-	$html     .= "<h3>Description</h3>\n";
+	if ( ! empty( $wp_hook_lister_settings['display']['description']['file'] ) ) {
+		$markdown .= '**File:** ' . $hook['file'] . "\n\n";
+		$html     .= '<p><strong>File:</strong> ' . $hook['file'] . "</p>\n";
+	} // End ['display']['description']['file']
 
-	$markdown .= '**File:** ' . $hook['file'] . "\n\n";
-	$html     .= '<p><strong>File:</strong> ' . $hook['file'] . "</p>\n";
-
-	if ( ! empty( $hook['type'] ) ) {
+	if (
+		! empty( $hook['type'] )
+		&& ! empty( $wp_hook_lister_settings['display']['description']['type'] )
+	) {
 
 		if ( 'filter' === $hook['type'] ) {
 			$markdown .= "**Type:** Filter \n\n";
@@ -222,9 +265,12 @@ foreach ( $hooks as $key => $hook ) {
 			$markdown .= "**Type:** Action \n\n";
 			$html     .= "<p><strong>Type:</strong> Action</p>\n";
 		}
-	}
+	} // End ['display']['description']['type']
 
-	if ( ! empty( $hook['parameters'] ) ) {
+	if (
+		! empty( $hook['parameters'] )
+		&& ! empty( $wp_hook_lister_settings['display']['description']['parameters'] )
+	) {
 
 		if ( 1 === count( $hook['parameters'] ) ) {
 			$markdown .= '**Parameter:** $' . $hook['parameters'][0] . "\n\n";
@@ -243,66 +289,71 @@ foreach ( $hooks as $key => $hook ) {
 			$markdown .= "\n\n";
 			$html     .= "</p>\n";
 		}
-	}
+	} // end ['display']['description']['parameters']
 
-	$markdown .= "### Declaration: \n\n```php\n" . $hook['declaration'] . "\n```\n\n";
-	$html     .= "<h3>Declaration:</h3></strong></p>\n<pre><code>" . $hook['declaration'] . "\n</code></pre>\n";
+	if ( ! empty( $wp_hook_lister_settings['display']['declaration'] ) ) {
+		$markdown .= "### Declaration: \n\n```php\n" . $hook['declaration'] . "\n```\n\n";
+		$html     .= "<h3>Declaration:</h3></strong></p>\n<pre><code>" . $hook['declaration'] . "\n</code></pre>\n";
+	} // ['display']['declaration']
 
+	if ( ! empty( $wp_hook_lister_settings['display']['example'] ) ) {
+		$markdown .= "### Code exemple: \n\n```php\n";
+		$html     .= "<h3>Code exemple:</h3>\n<pre><code>";
 
-	$markdown .= "### Code exemple: \n\n```php\n";
-	$html     .= "<h3>Code exemple:</h3>\n<pre><code>";
-
-	if ( 'action' === $hook['type'] ) {
-		$markdown .= "add_action( '";
-		$html     .= "add_action( '";
-	} elseif ( 'filter' === $hook['type'] ) {
-		$markdown .= "add_filter( '";
-		$html     .= "add_filter( '";
-	}
-
-	$markdown .= $hook['name'] . "', 'prefix_" . $hook['name'] . "'";
-	$html     .= $hook['name'] . "', 'prefix_" . $hook['name'] . "'";
-
-	if ( ! empty( $hook['parameters'] ) && 1 < count( $hook['parameters'] ) ) {
-		$markdown .= ', 10, ' . count( $hook['parameters'] );
-		$html     .= ', 10, ' . count( $hook['parameters'] );
-	}
-
-	$markdown .= " );\n";
-	$html     .= " );\n";
-
-	$markdown .= 'function prefix_' . $hook['name'] . '(';
-	$html     .= 'function prefix_' . $hook['name'] . '(';
-
-	if ( ! empty( $hook['parameters'] ) ) {
-		$markdown .= ' ';
-		$html     .= ' ';
-	}
-
-	foreach ( $hook['parameters'] as $key => $parameter ) {
-		if ( $key !== 0 ) {
-			$markdown .= ', ';
-			$html     .= ', ';
+		if ( 'action' === $hook['type'] ) {
+			$markdown .= "add_action( '";
+			$html     .= "add_action( '";
+		} elseif ( 'filter' === $hook['type'] ) {
+			$markdown .= "add_filter( '";
+			$html     .= "add_filter( '";
 		}
-		$markdown .= '$' . $parameter;
-		$html     .= '$' . $parameter;
-	}
 
-	if ( ! empty( $hook['parameters'] ) ) {
-		$markdown .= ' ';
-		$html     .= ' ';
-	}
+		$markdown .= $hook['name'] . "', 'prefix_" . $hook['name'] . "'";
+		$html     .= $hook['name'] . "', 'prefix_" . $hook['name'] . "'";
 
-	$markdown .= ") { \n\t// Code\n";
-	$html     .= ") { \n\t// Code\n";
+		if ( ! empty( $hook['parameters'] ) && 1 < count( $hook['parameters'] ) ) {
+			$markdown .= ', 10, ' . count( $hook['parameters'] );
+			$html     .= ', 10, ' . count( $hook['parameters'] );
+		}
 
-	if ( 'filter' === $hook['type'] ) {
-		$markdown .= "\treturn $" . $hook['parameters'][0] . ";\n";
-		$html     .= "\treturn $" . $hook['parameters'][0] . ";\n";
-	}
+		$markdown .= " );\n";
+		$html     .= " );\n";
 
-	$markdown .= "}\n```\n\n";
-	$html     .= "}\n</code></pre>\n";
+		$markdown .= 'function prefix_' . $hook['name'] . '(';
+		$html     .= 'function prefix_' . $hook['name'] . '(';
+
+		if ( ! empty( $hook['parameters'] ) ) {
+			$markdown .= ' ';
+			$html     .= ' ';
+		}
+
+		foreach ( $hook['parameters'] as $key => $parameter ) {
+			if ( $key !== 0 ) {
+				$markdown .= ', ';
+				$html     .= ', ';
+			}
+			$markdown .= '$' . $parameter;
+			$html     .= '$' . $parameter;
+		}
+
+		if ( ! empty( $hook['parameters'] ) ) {
+			$markdown .= ' ';
+			$html     .= ' ';
+		}
+
+		$markdown .= ") { \n\t// Code\n";
+		$html     .= ") { \n\t// Code\n";
+
+		if ( 'filter' === $hook['type'] ) {
+			$markdown .= "\treturn $" . $hook['parameters'][0] . ";\n";
+			$html     .= "\treturn $" . $hook['parameters'][0] . ";\n";
+		}
+
+		$markdown .= "}\n```\n\n";
+		$html     .= "}\n</code></pre>\n";
+	} // End ['display']['example']
+
+
 }
 
 ?>
