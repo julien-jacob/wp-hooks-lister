@@ -58,7 +58,7 @@ $wp_hook_lister_settings = array(
 /**
  * Hooks lister variables
  */
-$regex         = '/.*?(apply_filters|do_action)\(\s*?\'(.*?)\'\s*?,\s*(.*)\);/xmX';
+$regex         = '/.*?(do_action_ref_array|apply_filters|do_action)\(\s*?\'(.*?)\'\s*?,\s*(.*)\);/xmX';
 $all_php_files = array();
 $php_files     = array();
 $matches       = array();
@@ -143,10 +143,10 @@ foreach ( $php_files as $key => $php_file ) {
 				if ( 'apply_filters' === $matche[1] ) {
 					$counters['filters'] += 1;
 					$hook['type']         = 'filter';
-				} elseif ( 'do_action' === $matche[1] ) {
+				} elseif ( 'do_action' === $matche[1] || 'do_action_ref_array' === $matche[1] ) {
 					$counters['actions'] += 1;
 					$hook['type']         = 'action';
-				}
+				} 
 			}
 
 			/**

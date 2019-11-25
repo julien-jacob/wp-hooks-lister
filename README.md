@@ -25,3 +25,4 @@ Put the PHP file into the root folder of the plugin or theme to analyze and open
 ### V1.1
 - Change settings structure
 - Add display setting
+- Treat do_action_ref_array()
