@@ -36,10 +36,13 @@
 /**
  * Settings
  */
-$exclude_files = array(
-	'wp-hooks-lister.php',
-	'.*/vendor/.*',
-	'.*/node_modules/.*',
+$wp_hook_lister_settings = array(
+	'exclude_files' => array(
+		'wp-hooks-lister.php',
+		'.*/vendor/.*',
+		'.*/node_modules/.*',
+		'.*/deprecated/.*',
+	),
 );
 
 /**
@@ -77,7 +80,7 @@ $all_php_files = glob_recursive( '*.php' );
 
 foreach ( $all_php_files as $key => $php_file ) {
 	$is_eligible_file = true;
-	foreach ( $exclude_files as $key => $exclude_file ) {
+	foreach ( $wp_hook_lister_settings['exclude_files'] as $key => $exclude_file ) {
 		preg_match( "#$exclude_file#", $php_file, $exclude_regex_result );
 		if ( ! empty( $exclude_regex_result ) ) {
 			$is_eligible_file = false;
