@@ -17,3 +17,11 @@ Create **automatic WordPress hooks documentation** for **plugins** and **themes*
 ## 🐠 How to use ?
 
 Put the PHP file into the root folder of the plugin or theme to analyze and open it with your web browser. Enjoy!
+
+<br/><br/>
+
+## Changelog
+
+### V1.1
+- Change settings structure
+- Add display setting
